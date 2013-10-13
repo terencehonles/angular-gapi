@@ -1,5 +1,6 @@
 angular.module('gapi.client', []).provider('gapi', function() {
-    var _libraries = {};
+    var _authorization = {},
+        _libraries = {};
 
     // pre configure libraries so they can be accessed by name using
     // gapi.load(name).then(...) rather than specifying this in the
@@ -19,8 +20,14 @@ angular.module('gapi.client', []).provider('gapi', function() {
         _libraries[name] = {version: version, root: root};
     }
 
+    // pre configure $window.gapi.auth.authorize parameters
+    this.authorization = function(options) {
+        _authorization = options || {};
+    }
+
     this.$get = ['$q', '$rootScope', '$window', function($q, $scope, $window) {
-        var _deferred = $q.defer();
+        var $gapi,
+            _deferred = $q.defer();
             _promise = _deferred.promise;
 
         function resolve() {
@@ -29,17 +36,47 @@ angular.module('gapi.client', []).provider('gapi', function() {
                                 'passed to ready earlier or pass the ' +
                                 'deferred itself');
 
-            $scope.$apply(function() { _deferred.resolve(); });
+            $scope.$apply(function() { _deferred.resolve($gapi); });
         }
 
-
-        var $gapi = {
-            // cache of clients like $window.gapi.client
-            client: {},
+        $gapi = {
+            // defaults for gapi.auth.authorize
+            _authorization: _authorization,
 
             // a predefined list of libraries so you can just specify the
             // name below
             _libraries: _libraries,
+
+            auth: {
+                authorize: function(options) {
+                    var deferred = $q.defer();
+                    options = angular.extend({}, $gapi._authorization,
+                                                 options || {});
+
+                    $window.gapi.auth.authorize(options, function(response) {
+                        if (response) deferred.resolve(response);
+                        else deferred.reject(response);
+
+                        $scope.$apply();
+                    });
+
+                    return deferred.promise;
+                },
+
+                init: function() {
+                    var deferred = $q.defer();
+
+                    $window.gapi.auth.init(function() {
+                        deferred.resolve()
+                        if (!$scope.$$phase) $scope.$apply();
+                    });
+
+                    return deferred.promise;
+                }
+            },
+
+            // cache of clients like $window.gapi.client
+            client: {},
 
             // converts methods on $window.gapi.client to support promises
             // and caches the results in gapi.client
@@ -128,6 +165,33 @@ angular.module('gapi.client', []).provider('gapi', function() {
                 });
             },
 
+            mirror: function(name) {
+                var method,
+                    other = $window.gapi,
+                    self = $gapi,
+                    part,
+                    parts = name.split('.'),
+                    i = 0,
+                    len = parts.length - 1;
+
+                for (; i < len; i++) {
+                    part = parts[i];
+                    other = other[part];
+
+                    if (self[part]) self = self[part];
+                    else self = self[part] = {};
+                }
+
+                part = parts[len];
+                method = other[part];
+
+                self[part] = function() {
+                    return method.apply(other, arguments);
+                };
+
+                return $gapi;
+            },
+
             // if a callback is not given it is assumed that gapi onload
             // is not using a promise and the client has been loaded and
             // it is ready to continue
@@ -135,7 +199,12 @@ angular.module('gapi.client', []).provider('gapi', function() {
             // otherwise the callback is converted to a promise on
             // $window.gapi being loaded modeled after $(document).ready
             ready: function(callback) {
-                if (!callback) return resolve();
+                if (!callback) {
+                    $gapi.mirror('auth.getToken')
+                         .mirror('auth.setToken');
+
+                    return resolve();
+                }
 
                 return _promise.then(callback);
             }
