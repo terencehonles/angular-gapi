@@ -1,0 +1,11 @@
+{
+    "author": "Terence Honles",
+    "name": "angular-gapi",
+    "description": "AngularJS Utilities for working with the Google Javascript API. Specifically for usage around Google Cloud Endpoints",
+    "version": "0.9",
+    "homepage": "http://github.com/terencehonles/angular-gapi",
+    "main": "./modules/gapi-client.js",
+    "dependencies": {
+      "angular": ">= 1.0.0"
+    }
+}

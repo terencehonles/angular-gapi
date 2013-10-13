@@ -1,0 +1,13 @@
+{
+    "name": "angular-gapi",
+    "version": "0.9",
+    "description": "AngularJS Utilities for working with the Google Javascript API. Specifically for usage around Google Cloud Endpoints",
+    "author": "Terence Honles",
+    "license": "MIT License, http://www.opensource.org/licenses/MIT",
+    "homepage": "http://github.com/terencehonles/angular-gapi",
+    "dependencies": {},
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/terencehonles/angular-gapi.git"
+    }
+}
