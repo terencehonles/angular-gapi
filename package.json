@@ -1,6 +1,6 @@
 {
     "name": "angular-gapi",
-    "version": "0.9",
+    "version": "0.9.1",
     "description": "AngularJS Utilities for working with the Google Javascript API. Specifically for usage around Google Cloud Endpoints",
     "author": "Terence Honles",
     "license": "MIT License, http://www.opensource.org/licenses/MIT",
