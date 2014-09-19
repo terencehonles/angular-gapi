@@ -27,7 +27,7 @@ angular.module('gapi.client', []).provider('gapi', function() {
 
     this.$get = ['$q', '$rootScope', '$window', function($q, $scope, $window) {
         var $gapi,
-            _deferred = $q.defer();
+            _deferred = $q.defer(),
             _promise = _deferred.promise;
 
         function resolve() {
